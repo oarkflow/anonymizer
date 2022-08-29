@@ -20,6 +20,7 @@ type Rule struct {
 func Anonymize(s any, rules ...Rule) ([]byte, error) {
 	switch reflect.ValueOf(s).Kind() {
 	case reflect.Struct:
+		anonymizeStruct("", reflect.ValueOf(s))
 		return AnonymizeStruct(s, rules...)
 	case reflect.Map:
 		return AnonymizeMap(s, rules...)
@@ -35,6 +36,41 @@ func Normal(s any, rules ...Rule) ([]byte, error) {
 		return AnonymizeMap(s, rules...)
 	}
 	return nil, nil
+}
+
+func anonymizeStruct(tag string, v reflect.Value) {
+	for v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+		v = v.Elem()
+	}
+	switch v.Kind() {
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < v.Len(); i++ {
+			anonymizeStruct(tag, v.Index(i))
+		}
+	case reflect.Struct:
+		for i := 0; i < v.Type().NumField(); i++ {
+			tag := v.Type().Field(i).Tag.Get("anonymize")
+			anonymizeStruct(tag, v.Field(i))
+		}
+	default:
+		var value any
+
+		if tag != "" {
+			anonymizeParts := strings.SplitN(tag, ":", 2)
+			if ruler, ok := RulerBuiltinLookup[anonymizeParts[0]]; ok {
+				if len(anonymizeParts) > 1 {
+					value = ruler.Replace(v, anonymizeParts[1])
+				} else if len(anonymizeParts) == 1 {
+					value = ruler.Replace(v, "")
+				}
+			}
+		}
+		if value != nil {
+			v.Set(reflect.ValueOf(value))
+		} else {
+			v.Set(v)
+		}
+	}
 }
 
 func AnonymizeStruct(s any, rules ...Rule) ([]byte, error) {
@@ -82,7 +118,7 @@ func AnonymizeStruct(s any, rules ...Rule) ([]byte, error) {
 		anonymize := val.Type().Field(i).Tag.Get("anonymize")
 		if anonymize != "" {
 			anonymizeParts := strings.SplitN(anonymize, ":", 2)
-			if ruler, ok := rulerBuiltinLookup[anonymizeParts[0]]; ok {
+			if ruler, ok := RulerBuiltinLookup[anonymizeParts[0]]; ok {
 				if len(anonymizeParts) > 1 {
 					value = ruler.Replace(field, anonymizeParts[1])
 				} else if len(anonymizeParts) == 1 {
@@ -124,7 +160,7 @@ func AnonymizeMap(s any, rules ...Rule) ([]byte, error) {
 			var value any
 			for _, rule := range rules {
 				if rule.Param == k.String() {
-					if ruler, ok := rulerBuiltinLookup[rule.Type]; ok {
+					if ruler, ok := RulerBuiltinLookup[rule.Type]; ok {
 						value = ruler.Replace(field, rule.Value)
 					}
 				}

@@ -125,13 +125,13 @@ func GetAllFakerFunctions() []reflect.Value {
 	return reflect.ValueOf(gofakeit.FuncLookups).MapKeys()
 }
 
-var rulerBuiltinLookup map[string]Replacer
+var RulerBuiltinLookup map[string]Replacer
 
 func init() {
-	rulerBuiltinLookup = make(map[string]Replacer)
-	rulerBuiltinLookup["fake"] = &Faker{}
-	rulerBuiltinLookup["asterisk"] = &Asterisk{}
-	rulerBuiltinLookup["empty"] = &Empty{}
-	rulerBuiltinLookup["hash"] = &Hasher{}
-	rulerBuiltinLookup["encrypt"] = &Encrypter{}
+	RulerBuiltinLookup = make(map[string]Replacer)
+	RulerBuiltinLookup["fake"] = &Faker{}
+	RulerBuiltinLookup["asterisk"] = &Asterisk{}
+	RulerBuiltinLookup["empty"] = &Empty{}
+	RulerBuiltinLookup["hash"] = &Hasher{}
+	RulerBuiltinLookup["encrypt"] = &Encrypter{}
 }
