@@ -1,6 +1,8 @@
 package anonymizer
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"github.com/brianvoe/gofakeit/v6"
 	"hash/maphash"
 	"math/rand"
@@ -13,7 +15,7 @@ type Replacer interface {
 }
 
 type Asterisk struct {
-	Symbol string
+	Symbol string `json:"symbol"`
 }
 
 func (a *Asterisk) Replace(source any, name string) any {
@@ -47,7 +49,37 @@ func (a *Empty) Replace(source any, name string) any {
 		if field.CanSet() {
 			field.Set(reflect.ValueOf(""))
 		}
-		return field
+		return ""
+	default:
+		return source
+	}
+}
+
+type Hasher struct{}
+
+func (a *Hasher) Replace(source any, name string) any {
+	switch field := source.(type) {
+	case reflect.Value:
+		h := sha256.New()
+		h.Write([]byte(field.String()))
+		return hex.EncodeToString(h.Sum(nil))
+	default:
+		return source
+	}
+}
+
+type Encrypter struct {
+	Secret string `json:"secret"`
+}
+
+func (a *Encrypter) Replace(source any, name string) any {
+	if name != "" {
+		a.Secret = name
+	}
+	switch field := source.(type) {
+	case reflect.Value:
+		encrypted, _ := Encrypt(field.String(), a.Secret)
+		return encrypted
 	default:
 		return source
 	}
@@ -89,13 +121,17 @@ func (a *Faker) Replace(source any, name string) any {
 	}
 }
 
+func GetAllFakerFunctions() []reflect.Value {
+	return reflect.ValueOf(gofakeit.FuncLookups).MapKeys()
+}
+
 var rulerBuiltinLookup map[string]Replacer
-var rulerCustomLookup map[string]Replacer
 
 func init() {
 	rulerBuiltinLookup = make(map[string]Replacer)
-	rulerCustomLookup = make(map[string]Replacer)
 	rulerBuiltinLookup["fake"] = &Faker{}
 	rulerBuiltinLookup["asterisk"] = &Asterisk{}
 	rulerBuiltinLookup["empty"] = &Empty{}
+	rulerBuiltinLookup["hash"] = &Hasher{}
+	rulerBuiltinLookup["encrypt"] = &Encrypter{}
 }
