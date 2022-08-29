@@ -1,8 +1,8 @@
 package main
 
 import (
-	"encoding/json"
-	"os"
+	"anonymizer"
+	"fmt"
 )
 
 type User struct {
@@ -11,16 +11,12 @@ type User struct {
 	Password  string `json:"password" anonymize:"asterisk"`
 }
 
-func (u *User) MarshalJSON() ([]byte, error) {
-	return Anonymize(u)
-}
-
 func main() {
-	user := &User{
+	user := User{
 		ID:        1,
 		FirstName: "Sujit",
 		Password:  "T#sT1234",
 	}
-	e := json.NewEncoder(os.Stdout)
-	e.Encode(user)
+	u, err := anonymizer.Anonymize(user)
+	fmt.Println(string(u), err)
 }

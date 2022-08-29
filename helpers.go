@@ -1,4 +1,4 @@
-package main
+package anonymizer
 
 import (
 	"github.com/brianvoe/gofakeit/v6"

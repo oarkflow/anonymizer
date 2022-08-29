@@ -1,4 +1,4 @@
-package main
+package anonymizer
 
 import (
 	"github.com/brianvoe/gofakeit/v6"
@@ -30,6 +30,8 @@ func (a *Asterisk) Replace(source any, name string) any {
 		m := strings.Join(masked, "")
 		if field.CanSet() {
 			field.Set(reflect.ValueOf(m))
+		} else {
+			return m
 		}
 		return field
 	default:
@@ -66,7 +68,20 @@ func (a *Faker) Replace(source any, name string) any {
 			}
 			if field.CanSet() {
 				field.Set(reflect.ValueOf(fValue))
+			} else {
+				return fValue
 			}
+		}
+		return field
+	case string:
+		fName, fParams := parseNameAndParamsFromTag(name)
+		if info := gofakeit.GetFuncLookup(fName); info != nil {
+			mapParams := parseMapParams(info, fParams)
+			fValue, err := info.Generate(r, mapParams, info)
+			if err != nil {
+				return nil
+			}
+			return fValue
 		}
 		return field
 	default:
@@ -75,9 +90,11 @@ func (a *Faker) Replace(source any, name string) any {
 }
 
 var rulerBuiltinLookup map[string]Replacer
+var rulerCustomLookup map[string]Replacer
 
 func init() {
 	rulerBuiltinLookup = make(map[string]Replacer)
+	rulerCustomLookup = make(map[string]Replacer)
 	rulerBuiltinLookup["fake"] = &Faker{}
 	rulerBuiltinLookup["asterisk"] = &Asterisk{}
 	rulerBuiltinLookup["empty"] = &Empty{}
