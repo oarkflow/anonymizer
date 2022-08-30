@@ -54,7 +54,13 @@ func AnonymizeStruct(val reflect.Value) any {
 				var value any
 				if tag != "" {
 					anonymizeParts := strings.SplitN(tag, ":", 2)
-					if ruler, ok := RulerBuiltinLookup[anonymizeParts[0]]; ok {
+					if ruler, ok := rulerBuiltinLookup[anonymizeParts[0]]; ok {
+						if len(anonymizeParts) > 1 {
+							value = ruler.Replace(currentValue, anonymizeParts[1])
+						} else if len(anonymizeParts) == 1 {
+							value = ruler.Replace(currentValue, "")
+						}
+					} else if ruler, ok := rulerCustomLookup[anonymizeParts[0]]; ok {
 						if len(anonymizeParts) > 1 {
 							value = ruler.Replace(currentValue, anonymizeParts[1])
 						} else if len(anonymizeParts) == 1 {
@@ -98,7 +104,9 @@ func AnonymizeMap(val reflect.Value, rules ...Rule) any {
 				var value any
 				for _, rule := range rules {
 					if rule.Param == field.String() {
-						if ruler, ok := RulerBuiltinLookup[rule.Type]; ok {
+						if ruler, ok := rulerBuiltinLookup[rule.Type]; ok {
+							value = ruler.Replace(fieldValue, rule.Value)
+						} else if ruler, ok := rulerCustomLookup[rule.Type]; ok {
 							value = ruler.Replace(fieldValue, rule.Value)
 						}
 					}
@@ -115,6 +123,10 @@ func AnonymizeMap(val reflect.Value, rules ...Rule) any {
 }
 
 func Anonymize(src any, rules ...Rule) any {
+	switch st := src.(type) {
+	case []byte:
+		return processBytes(st, rules...)
+	}
 	source := reflect.ValueOf(src)
 	switch source.Kind() {
 	case reflect.Slice, reflect.Array:
@@ -134,27 +146,32 @@ func Anonymize(src any, rules ...Rule) any {
 	case reflect.Map:
 		return AnonymizeMap(source, rules...)
 	case reflect.String:
-		var src map[string]any
-		var sources []map[string]any
-		err := json.Unmarshal([]byte(source.String()), &src)
-		if err == nil {
-			return AnonymizeMap(reflect.ValueOf(src), rules...)
-		}
-		err = json.Unmarshal([]byte(source.String()), &sources)
-		if err == nil {
-			s := reflect.ValueOf(src)
-			var responses []any
-			for i := 0; i < s.Len(); i++ {
-				val := s.Index(i)
-				switch val.Kind() {
-				case reflect.Struct:
-					responses = append(responses, AnonymizeStruct(val))
-				case reflect.Map:
-					responses = append(responses, AnonymizeMap(val, rules...))
-				}
+		return processBytes([]byte(source.String()))
+	}
+	return nil
+}
+
+func processBytes(data []byte, rules ...Rule) any {
+	var src map[string]any
+	var sources []map[string]any
+	err := json.Unmarshal(data, &src)
+	if err == nil {
+		return AnonymizeMap(reflect.ValueOf(src), rules...)
+	}
+	err = json.Unmarshal(data, &sources)
+	if err == nil {
+		s := reflect.ValueOf(src)
+		var responses []any
+		for i := 0; i < s.Len(); i++ {
+			val := s.Index(i)
+			switch val.Kind() {
+			case reflect.Struct:
+				responses = append(responses, AnonymizeStruct(val))
+			case reflect.Map:
+				responses = append(responses, AnonymizeMap(val, rules...))
 			}
-			return responses
 		}
+		return responses
 	}
 	return nil
 }

@@ -3,6 +3,7 @@ package anonymizer
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"github.com/brianvoe/gofakeit/v6"
 	"hash/maphash"
 	"math/rand"
@@ -87,8 +88,9 @@ func (a *Encrypter) Replace(source any, name string) any {
 
 type Faker struct{}
 
+var r = rand.New(rand.NewSource(int64(new(maphash.Hash).Sum64())))
+
 func (a *Faker) Replace(source any, name string) any {
-	r := rand.New(rand.NewSource(int64(new(maphash.Hash).Sum64())))
 	fName, fParams := parseNameAndParamsFromTag(name)
 	if info := gofakeit.GetFuncLookup(fName); info != nil {
 		mapParams := parseMapParams(info, fParams)
@@ -104,13 +106,32 @@ func GetAllFakerFunctions() []reflect.Value {
 	return reflect.ValueOf(gofakeit.FuncLookups).MapKeys()
 }
 
-var RulerBuiltinLookup map[string]Replacer
+var rulerBuiltinLookup = map[string]Replacer{
+	"fake":     &Faker{},
+	"asterisk": &Asterisk{},
+	"empty":    &Empty{},
+	"hash":     &Hasher{},
+	"encrypt":  &Encrypter{},
+}
+var rulerCustomLookup = map[string]Replacer{}
 
-func init() {
-	RulerBuiltinLookup = make(map[string]Replacer)
-	RulerBuiltinLookup["fake"] = &Faker{}
-	RulerBuiltinLookup["asterisk"] = &Asterisk{}
-	RulerBuiltinLookup["empty"] = &Empty{}
-	RulerBuiltinLookup["hash"] = &Hasher{}
-	RulerBuiltinLookup["encrypt"] = &Encrypter{}
+func AddCustomReplacer(name string, replacer Replacer) error {
+	if len(name) == 0 {
+		return errors.New("replacer name is null")
+	}
+	if replacer == nil {
+		return errors.New("replacer is nil")
+	}
+	rulerCustomLookup[name] = replacer
+	return nil
+}
+
+func RemoveCustomReplacer(name string) error {
+	if len(name) == 0 {
+		return errors.New("replacer name is null")
+	}
+	if _, ok := rulerCustomLookup[name]; !ok {
+		return errors.New("replacer is not exists")
+	}
+	return nil
 }

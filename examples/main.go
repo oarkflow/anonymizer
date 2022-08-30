@@ -2,6 +2,7 @@ package main
 
 import (
 	"anonymizer"
+	"encoding/json"
 	"fmt"
 )
 
@@ -51,6 +52,11 @@ func mapAnonymize() {
 			Value: "{city}",
 			Param: "city",
 		},
+		{
+			Type:  "fake",
+			Value: "{country}",
+			Param: "country",
+		},
 	}
 	/*user1 := []map[string]any{
 		{
@@ -73,8 +79,8 @@ func mapAnonymize() {
 			"country": "Nepal",
 		},
 	}
-
-	fmt.Println(anonymizer.Anonymize(user2, rules...))
+	bt, _ := json.Marshal(user2)
+	fmt.Println(anonymizer.Anonymize(bt, rules...))
 }
 
 func main() {
