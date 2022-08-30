@@ -2,7 +2,6 @@ package anonymizer
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"strings"
 )
@@ -17,206 +16,145 @@ type Rule struct {
 	Param string
 }
 
-func Anonymize(s any, rules ...Rule) ([]byte, error) {
-	switch reflect.ValueOf(s).Kind() {
-	case reflect.Struct:
-		anonymizeStruct("", reflect.ValueOf(s))
-		return AnonymizeStruct(s, rules...)
-	case reflect.Map:
-		return AnonymizeMap(s, rules...)
-	}
-	return nil, nil
-}
-
-func Normal(s any, rules ...Rule) ([]byte, error) {
-	switch reflect.ValueOf(s).Kind() {
-	case reflect.Struct:
-		return NormalStruct(s, rules...)
-	case reflect.Map:
-		return AnonymizeMap(s, rules...)
-	}
-	return nil, nil
-}
-
-func anonymizeStruct(tag string, v reflect.Value) {
-	for v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
-		v = v.Elem()
-	}
-	switch v.Kind() {
-	case reflect.Slice, reflect.Array:
-		for i := 0; i < v.Len(); i++ {
-			anonymizeStruct(tag, v.Index(i))
-		}
-	case reflect.Struct:
-		for i := 0; i < v.Type().NumField(); i++ {
-			tag := v.Type().Field(i).Tag.Get("anonymize")
-			anonymizeStruct(tag, v.Field(i))
-		}
-	default:
-		var value any
-
-		if tag != "" {
-			anonymizeParts := strings.SplitN(tag, ":", 2)
-			if ruler, ok := RulerBuiltinLookup[anonymizeParts[0]]; ok {
-				if len(anonymizeParts) > 1 {
-					value = ruler.Replace(v, anonymizeParts[1])
-				} else if len(anonymizeParts) == 1 {
-					value = ruler.Replace(v, "")
-				}
-			}
-		}
-		if value != nil {
-			v.Set(reflect.ValueOf(value))
-		} else {
-			v.Set(v)
-		}
-	}
-}
-
-func AnonymizeStruct(s any, rules ...Rule) ([]byte, error) {
+func AnonymizeStruct(val reflect.Value) any {
 	out := map[string]any{}
-	if s == nil {
-		return nil, nil
-	}
-	val := reflect.ValueOf(s)
-	t := reflect.TypeOf(s)
-	if val.Kind() == reflect.Ptr && val.Elem().Kind() == reflect.Struct {
+	for val.Kind() == reflect.Ptr || val.Kind() == reflect.Interface {
 		val = val.Elem()
 	}
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
-		f := t.Field(i)
-		fieldKind := field.Kind()
-		if fieldKind == reflect.Ptr && field.Elem().Kind() == reflect.Struct {
-			if field.CanInterface() {
-				_, err := AnonymizeStruct(field.Interface())
-				if err != nil {
-					return nil, err
+	switch val.Kind() {
+	case reflect.Struct:
+		for i := 0; i < val.Type().NumField(); i++ {
+			currentValue := val.Field(i)
+			field := val.Type().Field(i)
+			tags := field.Tag
+			outName := ""
+			switch n := tags.Get("json"); n {
+			case "":
+				outName = field.Name
+			case "-":
+				outName = ""
+			default:
+				outName = n
+			}
+			if outName != "" {
+				switch currentValue.Kind() {
+				case reflect.Struct:
+					out[outName] = AnonymizeStruct(currentValue)
+					continue
+				case reflect.Map:
+					out[outName] = AnonymizeMap(currentValue)
+					continue
+				case reflect.Slice, reflect.Array:
+					for i := 0; i < currentValue.Len(); i++ {
+						out[outName] = AnonymizeStruct(currentValue.Index(i))
+					}
+					continue
 				}
-			}
-			continue
-		}
-		if fieldKind == reflect.Struct {
-			if field.CanAddr() && field.Addr().CanInterface() {
-				_, err := AnonymizeStruct(field.Addr().Interface())
-				if err != nil {
-					return nil, err
-				}
-			}
-			continue
-		}
-		outName := ""
-		switch n := val.Type().Field(i).Tag.Get("json"); n {
-		case "":
-			outName = f.Name
-		case "-":
-			outName = ""
-		default:
-			outName = n
-		}
-		var value any
-		anonymize := val.Type().Field(i).Tag.Get("anonymize")
-		if anonymize != "" {
-			anonymizeParts := strings.SplitN(anonymize, ":", 2)
-			if ruler, ok := RulerBuiltinLookup[anonymizeParts[0]]; ok {
-				if len(anonymizeParts) > 1 {
-					value = ruler.Replace(field, anonymizeParts[1])
-				} else if len(anonymizeParts) == 1 {
-					value = ruler.Replace(field, "")
-				}
-			}
-		}
-		if value != nil {
-			out[outName] = value
-		} else {
-			out[outName] = field.Interface()
-		}
-	}
-	return json.Marshal(out)
-}
-
-func AnonymizeMap(s any, rules ...Rule) ([]byte, error) {
-	out := map[string]any{}
-	if s == nil {
-		return nil, nil
-	}
-	val := reflect.ValueOf(s)
-	for _, k := range val.MapKeys() {
-		field := val.MapIndex(k)
-		switch reflect.ValueOf(field.Interface()).Kind() {
-		case reflect.Map:
-			mpData := map[string]any{}
-			mapData, err := AnonymizeMap(field.Interface(), rules...)
-			if err != nil {
-				return nil, err
-			}
-			err = json.Unmarshal(mapData, &mpData)
-			if err != nil {
-				return nil, err
-			}
-			out[k.String()] = mpData
-		default:
-			fmt.Println(k, field)
-			var value any
-			for _, rule := range rules {
-				if rule.Param == k.String() {
-					if ruler, ok := RulerBuiltinLookup[rule.Type]; ok {
-						value = ruler.Replace(field, rule.Value)
+				tag := tags.Get("anonymize")
+				var value any
+				if tag != "" {
+					anonymizeParts := strings.SplitN(tag, ":", 2)
+					if ruler, ok := RulerBuiltinLookup[anonymizeParts[0]]; ok {
+						if len(anonymizeParts) > 1 {
+							value = ruler.Replace(currentValue, anonymizeParts[1])
+						} else if len(anonymizeParts) == 1 {
+							value = ruler.Replace(currentValue, "")
+						}
 					}
 				}
 				if value != nil {
-					out[k.String()] = value
+					out[outName] = value
 				} else {
-					out[k.String()] = field.Interface()
+					out[outName] = currentValue.Interface()
 				}
 			}
 		}
 	}
-	return json.Marshal(out)
+	return out
 }
 
-func NormalStruct(s any, rules ...Rule) ([]byte, error) {
+func AnonymizeMap(val reflect.Value, rules ...Rule) any {
 	out := map[string]any{}
-	if s == nil {
-		return nil, nil
-	}
-	val := reflect.ValueOf(s)
-	t := reflect.TypeOf(s)
-	if val.Kind() == reflect.Ptr && val.Elem().Kind() == reflect.Struct {
-		val = val.Elem()
-	}
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
-		f := t.Field(i)
-		fieldKind := field.Kind()
-		if fieldKind == reflect.Ptr && field.Elem().Kind() == reflect.Struct {
-			if field.CanInterface() {
-				_, err := NormalStruct(field.Interface())
-				if err != nil {
-					return nil, err
+	switch val.Kind() {
+	case reflect.Map:
+		for _, field := range val.MapKeys() {
+			fieldValue := val.MapIndex(field)
+			var foundMap bool
+			switch fieldValue.Kind() {
+			case reflect.Interface:
+				switch fieldValue.Elem().Kind() {
+				case reflect.Map:
+					switch v := fieldValue.Interface().(type) {
+					case map[string]string, map[string]interface{}:
+						foundMap = true
+						out[field.String()] = AnonymizeMap(reflect.ValueOf(v), rules...)
+					}
+				case reflect.Struct:
+					foundMap = true
+					out[field.String()] = AnonymizeStruct(fieldValue)
 				}
 			}
-			continue
-		}
-		if fieldKind == reflect.Struct {
-			if field.CanAddr() && field.Addr().CanInterface() {
-				_, err := NormalStruct(field.Addr().Interface())
-				if err != nil {
-					return nil, err
+			if !foundMap {
+				var value any
+				for _, rule := range rules {
+					if rule.Param == field.String() {
+						if ruler, ok := RulerBuiltinLookup[rule.Type]; ok {
+							value = ruler.Replace(fieldValue, rule.Value)
+						}
+					}
+				}
+				if value != nil {
+					out[field.String()] = value
+				} else {
+					out[field.String()] = fieldValue.Interface()
 				}
 			}
-			continue
 		}
-		outName := ""
-		switch n := val.Type().Field(i).Tag.Get("json"); n {
-		case "":
-			outName = f.Name
-		case "-":
-			outName = ""
-		default:
-			outName = n
-		}
-		out[outName] = field.Interface()
 	}
-	return json.Marshal(out)
+	return out
+}
+
+func Anonymize(src any, rules ...Rule) any {
+	source := reflect.ValueOf(src)
+	switch source.Kind() {
+	case reflect.Slice, reflect.Array:
+		var responses []any
+		for i := 0; i < source.Len(); i++ {
+			val := source.Index(i)
+			switch val.Kind() {
+			case reflect.Struct:
+				responses = append(responses, AnonymizeStruct(val))
+			case reflect.Map:
+				responses = append(responses, AnonymizeMap(val, rules...))
+			}
+		}
+		return responses
+	case reflect.Struct:
+		return AnonymizeStruct(source)
+	case reflect.Map:
+		return AnonymizeMap(source, rules...)
+	case reflect.String:
+		var src map[string]any
+		var sources []map[string]any
+		err := json.Unmarshal([]byte(source.String()), &src)
+		if err == nil {
+			return AnonymizeMap(reflect.ValueOf(src), rules...)
+		}
+		err = json.Unmarshal([]byte(source.String()), &sources)
+		if err == nil {
+			s := reflect.ValueOf(src)
+			var responses []any
+			for i := 0; i < s.Len(); i++ {
+				val := s.Index(i)
+				switch val.Kind() {
+				case reflect.Struct:
+					responses = append(responses, AnonymizeStruct(val))
+				case reflect.Map:
+					responses = append(responses, AnonymizeMap(val, rules...))
+				}
+			}
+			return responses
+		}
+	}
+	return nil
 }

@@ -89,36 +89,15 @@ type Faker struct{}
 
 func (a *Faker) Replace(source any, name string) any {
 	r := rand.New(rand.NewSource(int64(new(maphash.Hash).Sum64())))
-	switch field := source.(type) {
-	case reflect.Value:
-		fName, fParams := parseNameAndParamsFromTag(name)
-		if info := gofakeit.GetFuncLookup(fName); info != nil {
-			mapParams := parseMapParams(info, fParams)
-			fValue, err := info.Generate(r, mapParams, info)
-			if err != nil {
-				return nil
-			}
-			if field.CanSet() {
-				field.Set(reflect.ValueOf(fValue))
-			} else {
-				return fValue
-			}
-		}
-		return field
-	case string:
-		fName, fParams := parseNameAndParamsFromTag(name)
-		if info := gofakeit.GetFuncLookup(fName); info != nil {
-			mapParams := parseMapParams(info, fParams)
-			fValue, err := info.Generate(r, mapParams, info)
-			if err != nil {
-				return nil
-			}
+	fName, fParams := parseNameAndParamsFromTag(name)
+	if info := gofakeit.GetFuncLookup(fName); info != nil {
+		mapParams := parseMapParams(info, fParams)
+		fValue, err := info.Generate(r, mapParams, info)
+		if err == nil {
 			return fValue
 		}
-		return field
-	default:
-		return source
 	}
+	return source
 }
 
 func GetAllFakerFunctions() []reflect.Value {
