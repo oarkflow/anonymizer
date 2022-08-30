@@ -12,7 +12,8 @@ type User struct {
 	FirstName  string  `json:"first_name" anonymize:"fake:{firstname}"`
 	Password   string  `json:"password" anonymize:"asterisk"`
 	Department string  `json:"department" anonymize:"encrypt:tN3XSDHWF8ZPOERtQRnkVMZYHgghteT7"`
-	Address    Address `json:"address"`
+	Avatar     string  `json:"avatar" anonymize:"fake:{imageurl:200,250}"`
+	Address    Address `json:"address" anonymize:"encrypt:tN3XSDHWF8ZPOERtQRnkVMZYHgghteT7"`
 }
 
 type Address struct {
@@ -27,6 +28,7 @@ var user = []User{
 		ID:         1,
 		FirstName:  "Sujit",
 		Password:   "T#sT1234",
+		Avatar:     "test",
 		Department: "IT Department",
 		Address: Address{
 			Model:   anonymizer.Model{Anonymize: true},
@@ -37,7 +39,7 @@ var user = []User{
 }
 
 func structAnonymize() {
-	// fmt.Println(anonymizer.Anonymize(user))
+	fmt.Println(anonymizer.Anonymize(user))
 }
 
 func mapAnonymize() {
