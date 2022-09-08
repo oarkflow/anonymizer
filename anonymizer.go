@@ -16,7 +16,7 @@ type Rule struct {
 	Param string
 }
 
-func AnonymizeStruct(val reflect.Value) any {
+func AnonymizeStruct(val reflect.Value, rules ...Rule) any {
 	out := map[string]any{}
 	for val.Kind() == reflect.Ptr || val.Kind() == reflect.Interface {
 		val = val.Elem()
@@ -39,32 +39,46 @@ func AnonymizeStruct(val reflect.Value) any {
 			if outName != "" {
 				switch currentValue.Kind() {
 				case reflect.Struct:
-					out[outName] = AnonymizeStruct(currentValue)
+					out[outName] = AnonymizeStruct(currentValue, rules...)
 					continue
 				case reflect.Map:
 					out[outName] = AnonymizeMap(currentValue)
 					continue
 				case reflect.Slice, reflect.Array:
 					for i := 0; i < currentValue.Len(); i++ {
-						out[outName] = AnonymizeStruct(currentValue.Index(i))
+						out[outName] = AnonymizeStruct(currentValue.Index(i), rules...)
 					}
 					continue
 				}
-				tag := tags.Get("anonymize")
 				var value any
-				if tag != "" {
-					anonymizeParts := strings.SplitN(tag, ":", 2)
-					if ruler, ok := rulerBuiltinLookup[anonymizeParts[0]]; ok {
-						if len(anonymizeParts) > 1 {
-							value = ruler.Replace(currentValue, anonymizeParts[1])
-						} else if len(anonymizeParts) == 1 {
-							value = ruler.Replace(currentValue, "")
+				var foundRules bool
+				for _, rule := range rules {
+					if rule.Param == outName {
+						if ruler, ok := rulerBuiltinLookup[rule.Type]; ok {
+							foundRules = true
+							value = ruler.Replace(currentValue, rule.Value)
+						} else if ruler, ok := rulerCustomLookup[rule.Type]; ok {
+							foundRules = true
+							value = ruler.Replace(currentValue, rule.Value)
 						}
-					} else if ruler, ok := rulerCustomLookup[anonymizeParts[0]]; ok {
-						if len(anonymizeParts) > 1 {
-							value = ruler.Replace(currentValue, anonymizeParts[1])
-						} else if len(anonymizeParts) == 1 {
-							value = ruler.Replace(currentValue, "")
+					}
+				}
+				if !foundRules {
+					tag := tags.Get("anonymize")
+					if tag != "" {
+						anonymizeParts := strings.SplitN(tag, ":", 2)
+						if ruler, ok := rulerBuiltinLookup[anonymizeParts[0]]; ok {
+							if len(anonymizeParts) > 1 {
+								value = ruler.Replace(currentValue, anonymizeParts[1])
+							} else if len(anonymizeParts) == 1 {
+								value = ruler.Replace(currentValue, "")
+							}
+						} else if ruler, ok := rulerCustomLookup[anonymizeParts[0]]; ok {
+							if len(anonymizeParts) > 1 {
+								value = ruler.Replace(currentValue, anonymizeParts[1])
+							} else if len(anonymizeParts) == 1 {
+								value = ruler.Replace(currentValue, "")
+							}
 						}
 					}
 				}
@@ -97,7 +111,7 @@ func AnonymizeMap(val reflect.Value, rules ...Rule) any {
 					}
 				case reflect.Struct:
 					foundMap = true
-					out[field.String()] = AnonymizeStruct(fieldValue)
+					out[field.String()] = AnonymizeStruct(fieldValue, rules...)
 				}
 			}
 			if !foundMap {
@@ -135,14 +149,14 @@ func Anonymize(src any, rules ...Rule) any {
 			val := source.Index(i)
 			switch val.Kind() {
 			case reflect.Struct:
-				responses = append(responses, AnonymizeStruct(val))
+				responses = append(responses, AnonymizeStruct(val, rules...))
 			case reflect.Map:
 				responses = append(responses, AnonymizeMap(val, rules...))
 			}
 		}
 		return responses
 	case reflect.Struct:
-		return AnonymizeStruct(source)
+		return AnonymizeStruct(source, rules...)
 	case reflect.Map:
 		return AnonymizeMap(source, rules...)
 	case reflect.String:
@@ -166,7 +180,7 @@ func processBytes(data []byte, rules ...Rule) any {
 			val := s.Index(i)
 			switch val.Kind() {
 			case reflect.Struct:
-				responses = append(responses, AnonymizeStruct(val))
+				responses = append(responses, AnonymizeStruct(val, rules...))
 			case reflect.Map:
 				responses = append(responses, AnonymizeMap(val, rules...))
 			}

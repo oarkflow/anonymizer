@@ -39,7 +39,24 @@ var user = []User{
 }
 
 func structAnonymize() {
-	fmt.Println(anonymizer.Anonymize(user))
+	rules := []anonymizer.Rule{
+		{
+			Type:  "asterisk",
+			Value: "{firstname}",
+			Param: "first_name",
+		},
+		{
+			Type:  "fake",
+			Value: "{city}",
+			Param: "city",
+		},
+		{
+			Type:  "fake",
+			Value: "{country}",
+			Param: "country",
+		},
+	}
+	fmt.Println(anonymizer.Anonymize(user, rules...))
 }
 
 func mapAnonymize() {
