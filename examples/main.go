@@ -1,9 +1,9 @@
 package main
 
 import (
-	"anonymizer"
 	"encoding/json"
 	"fmt"
+	"github.com/sujit-baniya/anonymizer"
 )
 
 type User struct {

@@ -1,4 +1,4 @@
-module anonymizer
+module github.com/sujit-baniya/anonymizer
 
 go 1.19
 
