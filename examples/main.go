@@ -103,6 +103,7 @@ func mapAnonymize() {
 }
 
 func main() {
+	fmt.Println(anonymizer.GetFakerKeyList())
 	structAnonymize()
 	mapAnonymize()
 }

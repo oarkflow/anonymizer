@@ -106,6 +106,14 @@ func GetAllFakerFunctions() []reflect.Value {
 	return reflect.ValueOf(gofakeit.FuncLookups).MapKeys()
 }
 
+func GetFakerKeyList() (keys []string) {
+	keyValues := reflect.ValueOf(gofakeit.FuncLookups).MapKeys()
+	for _, key := range keyValues {
+		keys = append(keys, key.String())
+	}
+	return
+}
+
 var rulerBuiltinLookup = map[string]Replacer{
 	"fake":     &Faker{},
 	"asterisk": &Asterisk{},
