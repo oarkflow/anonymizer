@@ -43,17 +43,17 @@ func structAnonymize() {
 		{
 			Type:  "asterisk",
 			Value: "{firstname}",
-			Param: "first_name",
+			Field: "first_name",
 		},
 		{
 			Type:  "fake",
 			Value: "{city}",
-			Param: "city",
+			Field: "city",
 		},
 		{
 			Type:  "fake",
 			Value: "{country}",
-			Param: "country",
+			Field: "country",
 		},
 	}
 	fmt.Println(anonymizer.Anonymize(user, rules...))
@@ -64,17 +64,17 @@ func mapAnonymize() {
 		{
 			Type:  "fake",
 			Value: "{firstname}",
-			Param: "first_name",
+			Field: "first_name",
 		},
 		{
 			Type:  "fake",
 			Value: "{city}",
-			Param: "city",
+			Field: "city",
 		},
 		{
 			Type:  "fake",
 			Value: "{country}",
-			Param: "country",
+			Field: "country",
 		},
 	}
 	/*user1 := []map[string]any{

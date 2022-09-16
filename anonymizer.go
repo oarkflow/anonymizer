@@ -11,9 +11,9 @@ type Model struct {
 }
 
 type Rule struct {
-	Type  string
-	Value string
-	Param string
+	Type  string `json:"type"`
+	Value string `json:"value"`
+	Field string `json:"field"`
 }
 
 func AnonymizeStruct(val reflect.Value, rules ...Rule) any {
@@ -53,7 +53,7 @@ func AnonymizeStruct(val reflect.Value, rules ...Rule) any {
 				var value any
 				var foundRules bool
 				for _, rule := range rules {
-					if rule.Param == outName {
+					if rule.Field == outName {
 						if ruler, ok := rulerBuiltinLookup[rule.Type]; ok {
 							foundRules = true
 							value = ruler.Replace(currentValue, rule.Value)
@@ -117,7 +117,7 @@ func AnonymizeMap(val reflect.Value, rules ...Rule) any {
 			if !foundMap {
 				var value any
 				for _, rule := range rules {
-					if rule.Param == field.String() {
+					if rule.Field == field.String() {
 						if ruler, ok := rulerBuiltinLookup[rule.Type]; ok {
 							value = ruler.Replace(fieldValue, rule.Value)
 						} else if ruler, ok := rulerCustomLookup[rule.Type]; ok {
