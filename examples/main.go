@@ -3,7 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sujit-baniya/anonymizer"
+
+	"github.com/oarkflow/anonymizer"
 )
 
 type User struct {
@@ -103,7 +104,6 @@ func mapAnonymize() {
 }
 
 func main() {
-	fmt.Println(anonymizer.GetFakerKeyList())
 	structAnonymize()
 	mapAnonymize()
 }

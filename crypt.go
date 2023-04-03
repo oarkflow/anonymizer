@@ -7,15 +7,16 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/mergermarket/go-pkcs7"
 	"io"
 )
 
 // Encrypt encrypts plain text string into cipher text string
 func Encrypt(unencrypted string, password string) (string, error) {
+	var plainText []byte
+	var err error
 	key := []byte(password)
-	plainText := []byte(unencrypted)
-	plainText, err := pkcs7.Pad(plainText, aes.BlockSize)
+	plainText = []byte(unencrypted)
+	plainText, err = Pad(plainText, aes.BlockSize)
 	if err != nil {
 		return "", fmt.Errorf(`plainText: "%s" has error`, plainText)
 	}
@@ -67,6 +68,6 @@ func Decrypt(encrypted string, password string) (string, error) {
 	mode := cipher.NewCBCDecrypter(block, iv)
 	mode.CryptBlocks(cipherText, cipherText)
 
-	cipherText, _ = pkcs7.Unpad(cipherText, aes.BlockSize)
+	cipherText, _ = Unpad(cipherText, aes.BlockSize)
 	return fmt.Sprintf("%s", cipherText), nil
 }

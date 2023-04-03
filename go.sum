@@ -1,4 +1,2 @@
-github.com/brianvoe/gofakeit/v6 v6.18.0 h1:tDQ4zJVFQHaJKvY9xYSqGN4S7noZU/doFn15/aNbhCU=
-github.com/brianvoe/gofakeit/v6 v6.18.0/go.mod h1:Ow6qC71xtwm79anlwKRlWZW6zVq9D2XHE4QSSMP/rU8=
-github.com/mergermarket/go-pkcs7 v0.0.0-20170926155232-153b18ea13c9 h1:j6boLfPkcFlRVaKbc0hf5PVh3jJrdHv9n6SIPOdVKaU=
-github.com/mergermarket/go-pkcs7 v0.0.0-20170926155232-153b18ea13c9/go.mod h1:GH7jtq102ZiRB7LEKgqP54akN7GOVaNpCJrDWTeWSMY=
+github.com/brianvoe/gofakeit/v6 v6.20.2 h1:FLloufuC7NcbHqDzVQ42CG9AKryS1gAGCRt8nQRsW+Y=
+github.com/brianvoe/gofakeit/v6 v6.20.2/go.mod h1:Ow6qC71xtwm79anlwKRlWZW6zVq9D2XHE4QSSMP/rU8=
