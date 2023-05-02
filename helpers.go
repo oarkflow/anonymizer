@@ -1,8 +1,9 @@
 package anonymizer
 
 import (
-	"github.com/brianvoe/gofakeit/v6"
 	"strings"
+
+	"github.com/brianvoe/gofakeit/v6"
 )
 
 // Used for parsing the tag in a struct
@@ -10,7 +11,7 @@ func parseNameAndParamsFromTag(tag string) (string, string) {
 	// Trim the curly on the beginning and end
 	tag = strings.TrimLeft(tag, "{")
 	tag = strings.TrimRight(tag, "}")
-	// Check if has params separated by :
+	// Check if it has params separated by :
 	fNameSplit := strings.SplitN(tag, ":", 2)
 	fName := ""
 	fParams := ""
@@ -24,7 +25,7 @@ func parseNameAndParamsFromTag(tag string) (string, string) {
 }
 
 func funcLookupSplit(str string) []string {
-	out := []string{}
+	var out []string
 	for str != "" {
 		if strings.HasPrefix(str, "[") {
 			startIndex := strings.Index(str, "[")
@@ -60,7 +61,7 @@ func parseMapParams(info *gofakeit.Info, fParams string) *gofakeit.MapParams {
 	mapParams := gofakeit.NewMapParams()
 	paramsLen := len(info.Params)
 
-	// If just one param and its a string simply just pass it
+	// If just one param and it's a string simply just pass it
 	if paramsLen == 1 && info.Params[0].Type == "string" {
 		mapParams.Add(info.Params[0].Field, fParams)
 	} else if paramsLen > 0 && fParams != "" {

@@ -1,5 +1,5 @@
 module github.com/oarkflow/anonymizer
 
-go 1.19
+go 1.20
 
-require github.com/brianvoe/gofakeit/v6 v6.20.2
+require github.com/brianvoe/gofakeit/v6 v6.21.0
