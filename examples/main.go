@@ -7,6 +7,18 @@ import (
 	"github.com/oarkflow/anonymizer"
 )
 
+func main() {
+	structAnonymize()
+	mapAnonymize()
+	data := `
+https://sujit-baniya:kjhkjhkjhkjhk@github.com/Orgware-Construct/clear20-frontend.git
+
+tN3XSDHWF8ZPOERtQRnkVMZYHgghteT7
+`
+	parse := anonymizer.RedactGithub(data)
+	fmt.Println(parse)
+}
+
 type User struct {
 	anonymizer.Model
 	ID         int     `json:"id" anonymize:"fake:{number:1}"`
@@ -101,9 +113,4 @@ func mapAnonymize() {
 	}
 	bt, _ := json.Marshal(user2)
 	fmt.Println(anonymizer.Anonymize(bt, rules...))
-}
-
-func main() {
-	structAnonymize()
-	mapAnonymize()
 }

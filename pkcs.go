@@ -2,6 +2,7 @@ package anonymizer
 
 import (
 	"errors"
+	"reflect"
 )
 
 func Pad(buf []byte, size int) ([]byte, error) {
@@ -24,4 +25,24 @@ func Unpad(padded []byte, size int) ([]byte, error) {
 	buf := make([]byte, bufLen)
 	copy(buf, padded[:bufLen])
 	return buf, nil
+}
+
+func RedactGithub(str string) string {
+	pattern := "https://<username>:<token>@<domain>/<github>/<repo>"
+	parse, err := Parse(str, pattern)
+	if err != nil {
+		return str
+	}
+	parsed := AnonymizeMap(reflect.ValueOf(parse), Rule{
+		Type:  "asterisk",
+		Field: "token",
+	})
+	if parsed == nil {
+		return str
+	}
+	replace, err := Replace(parsed.(map[string]any), pattern)
+	if err != nil {
+		return str
+	}
+	return replace
 }
