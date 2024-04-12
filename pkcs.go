@@ -3,6 +3,7 @@ package anonymizer
 import (
 	"errors"
 	"reflect"
+	"strings"
 )
 
 func Pad(buf []byte, size int) ([]byte, error) {
@@ -29,7 +30,7 @@ func Unpad(padded []byte, size int) ([]byte, error) {
 
 func RedactGithub(str string) string {
 	pattern := "https://<username>:<token>@<domain>/<github>/<repo>"
-	parse, err := Parse(str, pattern)
+	parsedURL, parse, err := ParseWithMatched(str, pattern)
 	if err != nil {
 		return str
 	}
@@ -44,5 +45,5 @@ func RedactGithub(str string) string {
 	if err != nil {
 		return str
 	}
-	return replace
+	return strings.ReplaceAll(str, parsedURL, replace)
 }

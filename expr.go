@@ -241,6 +241,33 @@ func Parse(data, pattern string) (map[string]any, error) {
 	return valueMap, nil
 }
 
+func ParseWithMatched(data, pattern string) (string, map[string]any, error) {
+	regexpPatternInString := PlaceHolderRegex.ReplaceAllStringFunc(pattern, placeholderReplacer)
+	regexpPatternIn := regexp.MustCompile(regexpPatternInString)
+	// let's build a data map
+	valueMap := make(map[string]any)
+	for _, name := range regexpPatternIn.SubexpNames() {
+		if name == "" || name == "skip" {
+			continue
+		}
+		valueMap[name] = ""
+	}
+	// Get the data out of the input string
+	matches := regexpPatternIn.FindStringSubmatch(data)
+	if matches == nil {
+		return "", valueMap, fmt.Errorf("data did not match input pattern")
+	}
+	matched := matches[0]
+	// let's build a data map
+	for _, name := range regexpPatternIn.SubexpNames() {
+		if name == "" || name == "skip" {
+			continue
+		}
+		valueMap[name] = matches[regexpPatternIn.SubexpIndex(name)]
+	}
+	return matched, valueMap, nil
+}
+
 func Replace(data map[string]any, pattern string) (string, error) {
 	var errorOccurred error = nil
 
