@@ -28,7 +28,7 @@ var (
 	VISACreditCardPattern    = `4\d{3}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}`
 	MCCreditCardPattern      = `5[1-5]\d{2}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}`
 	BtcAddressPattern        = `[13][a-km-zA-HJ-NP-Z1-9]{25,34}`
-	StreetAddressPattern     = `\d{1,4} [\w\s]{1,20}(?:street|st|avenue|ave|road|rd|highway|hwy|square|sq|trail|trl|drive|dr|court|ct|park|parkway|pkwy|circle|cir|boulevard|blvd)\W?`
+	StreetAddressPattern     = `\d{1,4} [\w\s]{1,20}(?:street|st|avenue|ave|road|rd|highway|hwy|square|sq|trail|trl|drive|dr|court|ct|park|parkway|pkwy|circle|cir|boulevard|blvd|st)\W?`
 	ZipCodePattern           = `\b\d{5}(?:[-\s]\d{4})?\b`
 	PoBoxPattern             = `(?i)P\.? ?O\.? Box \d+`
 	SSNPattern               = `(?:\d{3}-\d{2}-\d{4})`
@@ -48,44 +48,107 @@ var (
 	IntPattern    = "^(?:[-+]?(?:0|[1-9][0-9]*))$"
 	FloatPattern  = `^[+\-]?(?:(?:0|[1-9]\d*)(?:\.\d*)?|\.\d+)(?:\d[eE][+\-]?\d+)?$`
 	StringPattern = `.+`
+
+	CloudinaryPattern      = "cloudinary://.*"
+	FirebaseURLPattern     = ".*firebaseio\\.com"
+	SlackTokenPattern      = "(xox[p|b|o|a]-[0-9]{12}-[0-9]{12}-[0-9]{12}-[a-z0-9]{32})"
+	RSAPrivateKeyPattern   = "-----BEGIN RSA PRIVATE KEY-----"
+	DSAPrivateKeyPattern   = "-----BEGIN DSA PRIVATE KEY-----"
+	ECPrivateKeyPattern    = "-----BEGIN EC PRIVATE KEY-----"
+	PGPPrivateKeyPattern   = "-----BEGIN PGP PRIVATE KEY BLOCK-----"
+	AWSAccessKey           = "AKIA[0-9A-Z]{16}"
+	MWSTokenPattern        = "amzn\\.mws\\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+	FacebookToken          = "EAACEdEose0cBA[0-9A-Za-z]+"
+	FacebookOAuth          = "[f|F][a|A][c|C][e|E][b|B][o|O][o|O][k|K].*['|\"][0-9a-f]{32}['|\"]"
+	GithubToken            = "[g|G][i|I][t|T][h|H][u|U][b|B].*['|\"][0-9a-zA-Z]{35,40}['|\"]"
+	ApiKeyPattern          = "[a|A][p|P][i|I][_]?[k|K][e|E][y|Y].*['|\"][0-9a-zA-Z]{32,45}['|\"]"
+	SecretPattern          = "[s|S][e|E][c|C][r|R][e|E][t|T].*['|\"][0-9a-zA-Z]{32,45}['|\"]"
+	GoogleAPIKey           = "AIza[0-9A-Za-z\\-_]{35}"
+	GCPOAUth               = "[0-9]+-[0-9A-Za-z_]{32}\\.apps\\.googleusercontent\\.com"
+	GoogleOAuthToken       = "ya29\\.[0-9A-Za-z\\-_]+"
+	HerokuAPIKey           = "[h|H][e|E][r|R][o|O][k|K][u|U].*[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}"
+	MailChimpAPIKey        = "[0-9a-f]{32}-us[0-9]{1,2}"
+	MailgunAPIKey          = "key-[0-9a-zA-Z]{32}"
+	PasswordInURL          = "[a-zA-Z]{3,10}://[^/\\s:@]{3,20}:[^/\\s:@]{3,20}@.{1,100}[\"'\\s]"
+	BraintreeToken         = "access_token\\$production\\$[0-9a-z]{16}\\$[0-9a-f]{32}"
+	PicaticAPIKey          = "sk_live_[0-9a-z]{32}"
+	SlackWebhook           = "https://hooks.slack.com/services/T[a-zA-Z0-9_]{8}/B[a-zA-Z0-9_]{8}/[a-zA-Z0-9_]{24}"
+	StripeAPIKey           = "sk_live_[0-9a-zA-Z]{24}"
+	StripeRestrictedAPIKey = "rk_live_[0-9a-zA-Z]{24}"
+	SquareAccessToken      = "sq0atp-[0-9A-Za-z\\-_]{22}"
+	SquareOAuthSecret      = "sq0csp-[0-9A-Za-z\\-_]{43}"
+	TwilioAPIKey           = "SK[0-9a-fA-F]{32}"
+	TwitterAccessToken     = "[t|T][w|W][i|I][t|T][t|T][e|E][r|R].*[1-9][0-9]+-[0-9a-zA-Z]{40}"
+	TwitterOAuth           = "[t|T][w|W][i|I][t|T][t|T][e|E][r|R].*['|\"][0-9a-zA-Z]{35,44}['|\"]"
 )
 
 // Compiled regular expressions
 var (
-	DateRegex              = regexp.MustCompile(DatePattern)
-	TimeRegex              = regexp.MustCompile(TimePattern)
-	PhoneRegex             = regexp.MustCompile(PhonePattern)
-	PhonesWithExtsRegex    = regexp.MustCompile(PhonesWithExtsPattern)
-	EmailRegex             = regexp.MustCompile(EmailPattern)
-	IPv4Regex              = regexp.MustCompile(IPv4Pattern)
-	IPv6Regex              = regexp.MustCompile(IPv6Pattern)
-	IPRegex                = regexp.MustCompile(IPPattern)
-	NotKnownPortRegex      = regexp.MustCompile(NotKnownPortPattern)
-	PriceRegex             = regexp.MustCompile(PricePattern)
-	HexColorRegex          = regexp.MustCompile(HexColorPattern)
-	CreditCardRegex        = regexp.MustCompile(CreditCardPattern)
-	BtcAddressRegex        = regexp.MustCompile(BtcAddressPattern)
-	StreetAddressRegex     = regexp.MustCompile(StreetAddressPattern)
-	ZipCodeRegex           = regexp.MustCompile(ZipCodePattern)
-	PoBoxRegex             = regexp.MustCompile(PoBoxPattern)
-	SSNRegex               = regexp.MustCompile(SSNPattern)
-	MD5HexRegex            = regexp.MustCompile(MD5HexPattern)
-	SHA1HexRegex           = regexp.MustCompile(SHA1HexPattern)
-	SHA256HexRegex         = regexp.MustCompile(SHA256HexPattern)
-	GUIDRegex              = regexp.MustCompile(GUIDPattern)
-	ISBN13Regex            = regexp.MustCompile(ISBN13Pattern)
-	ISBN10Regex            = regexp.MustCompile(ISBN10Pattern)
-	VISACreditCardRegex    = regexp.MustCompile(VISACreditCardPattern)
-	MCCreditCardRegex      = regexp.MustCompile(MCCreditCardPattern)
-	MACAddressRegex        = regexp.MustCompile(MACAddressPattern)
-	IBANRegex              = regexp.MustCompile(IBANPattern)
-	GitRepoRegex           = regexp.MustCompile(GitRepoPattern)
-	PlaceHolderRegex       = regexp.MustCompile(PlaceHolderPattern)
-	OutputPlaceHolderRegex = regexp.MustCompile(OutputPlaceHolderPattern)
-	WordRegex              = regexp.MustCompile(WordPattern)
-	IntRegex               = regexp.MustCompile(IntPattern)
-	FloatRegex             = regexp.MustCompile(FloatPattern)
-	StringRegex            = regexp.MustCompile(StringPattern)
+	DateRegex                   = regexp.MustCompile(DatePattern)
+	TimeRegex                   = regexp.MustCompile(TimePattern)
+	PhoneRegex                  = regexp.MustCompile(PhonePattern)
+	PhonesWithExtsRegex         = regexp.MustCompile(PhonesWithExtsPattern)
+	EmailRegex                  = regexp.MustCompile(EmailPattern)
+	IPv4Regex                   = regexp.MustCompile(IPv4Pattern)
+	IPv6Regex                   = regexp.MustCompile(IPv6Pattern)
+	IPRegex                     = regexp.MustCompile(IPPattern)
+	NotKnownPortRegex           = regexp.MustCompile(NotKnownPortPattern)
+	PriceRegex                  = regexp.MustCompile(PricePattern)
+	HexColorRegex               = regexp.MustCompile(HexColorPattern)
+	CreditCardRegex             = regexp.MustCompile(CreditCardPattern)
+	BtcAddressRegex             = regexp.MustCompile(BtcAddressPattern)
+	StreetAddressRegex          = regexp.MustCompile(StreetAddressPattern)
+	ZipCodeRegex                = regexp.MustCompile(ZipCodePattern)
+	PoBoxRegex                  = regexp.MustCompile(PoBoxPattern)
+	SSNRegex                    = regexp.MustCompile(SSNPattern)
+	MD5HexRegex                 = regexp.MustCompile(MD5HexPattern)
+	SHA1HexRegex                = regexp.MustCompile(SHA1HexPattern)
+	SHA256HexRegex              = regexp.MustCompile(SHA256HexPattern)
+	GUIDRegex                   = regexp.MustCompile(GUIDPattern)
+	ISBN13Regex                 = regexp.MustCompile(ISBN13Pattern)
+	ISBN10Regex                 = regexp.MustCompile(ISBN10Pattern)
+	VISACreditCardRegex         = regexp.MustCompile(VISACreditCardPattern)
+	MCCreditCardRegex           = regexp.MustCompile(MCCreditCardPattern)
+	MACAddressRegex             = regexp.MustCompile(MACAddressPattern)
+	IBANRegex                   = regexp.MustCompile(IBANPattern)
+	GitRepoRegex                = regexp.MustCompile(GitRepoPattern)
+	PlaceHolderRegex            = regexp.MustCompile(PlaceHolderPattern)
+	OutputPlaceHolderRegex      = regexp.MustCompile(OutputPlaceHolderPattern)
+	WordRegex                   = regexp.MustCompile(WordPattern)
+	IntRegex                    = regexp.MustCompile(IntPattern)
+	FloatRegex                  = regexp.MustCompile(FloatPattern)
+	StringRegex                 = regexp.MustCompile(StringPattern)
+	CloudinaryPatternRegex      = regexp.MustCompile(CloudinaryPattern)
+	FirebaseURLPatternRegex     = regexp.MustCompile(FirebaseURLPattern)
+	SlackTokenPatternRegex      = regexp.MustCompile(SlackTokenPattern)
+	RSAPrivateKeyPatternRegex   = regexp.MustCompile(RSAPrivateKeyPattern)
+	DSAPrivateKeyPatternRegex   = regexp.MustCompile(DSAPrivateKeyPattern)
+	ECPrivateKeyPatternRegex    = regexp.MustCompile(ECPrivateKeyPattern)
+	PGPPrivateKeyPatternRegex   = regexp.MustCompile(PGPPrivateKeyPattern)
+	AWSAccessKeyRegex           = regexp.MustCompile(AWSAccessKey)
+	MWSTokenPatternRegex        = regexp.MustCompile(MWSTokenPattern)
+	FacebookTokenRegex          = regexp.MustCompile(FacebookToken)
+	FacebookOAuthRegex          = regexp.MustCompile(FacebookOAuth)
+	GithubTokenRegex            = regexp.MustCompile(GithubToken)
+	ApiKeyPatternRegex          = regexp.MustCompile(ApiKeyPattern)
+	SecretPatternRegex          = regexp.MustCompile(SecretPattern)
+	GoogleAPIKeyRegex           = regexp.MustCompile(GoogleAPIKey)
+	GCPOAUthRegex               = regexp.MustCompile(GCPOAUth)
+	GoogleOAuthTokenRegex       = regexp.MustCompile(GoogleOAuthToken)
+	HerokuAPIKeyRegex           = regexp.MustCompile(HerokuAPIKey)
+	MailChimpAPIKeyRegex        = regexp.MustCompile(MailChimpAPIKey)
+	MailgunAPIKeyRegex          = regexp.MustCompile(MailgunAPIKey)
+	PasswordInURLRegex          = regexp.MustCompile(PasswordInURL)
+	BraintreeTokenRegex         = regexp.MustCompile(BraintreeToken)
+	PicaticAPIKeyRegex          = regexp.MustCompile(PicaticAPIKey)
+	SlackWebhookRegex           = regexp.MustCompile(SlackWebhook)
+	StripeAPIKeyRegex           = regexp.MustCompile(StripeAPIKey)
+	StripeRestrictedAPIKeyRegex = regexp.MustCompile(StripeRestrictedAPIKey)
+	SquareAccessTokenRegex      = regexp.MustCompile(SquareAccessToken)
+	SquareOAuthSecretRegex      = regexp.MustCompile(SquareOAuthSecret)
+	TwilioAPIKeyRegex           = regexp.MustCompile(TwilioAPIKey)
+	TwitterAccessTokenRegex     = regexp.MustCompile(TwitterAccessToken)
+	TwitterOAuthRegex           = regexp.MustCompile(TwitterOAuth)
 )
 
 var PatternsMap = map[string]string{
@@ -122,36 +185,99 @@ var PatternsMap = map[string]string{
 	"integer":        IntPattern,
 	"float":          FloatPattern,
 	"string":         StringPattern,
+
+	"cloudinary_url":            CloudinaryPattern,
+	"firebase_url":              FirebaseURLPattern,
+	"slack_token":               SlackTokenPattern,
+	"rsa_private_key":           RSAPrivateKeyPattern,
+	"dsa_private_key":           DSAPrivateKeyPattern,
+	"ec_private_key":            ECPrivateKeyPattern,
+	"pgp_private_key":           PGPPrivateKeyPattern,
+	"aws_access_key":            AWSAccessKey,
+	"mws_token":                 MWSTokenPattern,
+	"facebook_token":            FacebookToken,
+	"facebook_oauth":            FacebookOAuth,
+	"github_token":              GithubToken,
+	"api_key":                   ApiKeyPattern,
+	"secret":                    SecretPattern,
+	"google_api_key":            GoogleAPIKey,
+	"gcp_oauth":                 GCPOAUth,
+	"google_oauth_token":        GoogleOAuthToken,
+	"heroku_api_key":            HerokuAPIKey,
+	"mailchimp_api_key":         MailChimpAPIKey,
+	"mailgun_api_key":           MailgunAPIKey,
+	"password_in_url":           PasswordInURL,
+	"braintree_token":           BraintreeToken,
+	"picatic_api_key":           PicaticAPIKey,
+	"slack_webhook":             SlackWebhook,
+	"stripe_api_key":            StripeAPIKey,
+	"stripe_restricted_api_key": StripeRestrictedAPIKey,
+	"square_access_token":       SquareAccessToken,
+	"square_oauth_secret":       SquareOAuthSecret,
+	"twilio_api_key":            TwilioAPIKey,
+	"twitter_access_token":      TwitterAccessToken,
+	"twitter_oauth":             TwitterOAuth,
 }
 
 var RegexMap = map[string]*regexp.Regexp{
-	"date":           DateRegex,
-	"time":           TimeRegex,
-	"phone":          PhoneRegex,
-	"phone_ext":      PhonesWithExtsRegex,
-	"link":           LinkRegex,
-	"email":          EmailRegex,
-	"ip4":            IPv4Regex,
-	"ip6":            IPv6Regex,
-	"ip":             IPRegex,
-	"price":          PriceRegex,
-	"cc":             CreditCardRegex,
-	"visa_cc":        VISACreditCardRegex,
-	"mc_cc":          MCCreditCardRegex,
-	"btc_address":    BtcAddressRegex,
-	"street_address": StreetAddressRegex,
-	"zip_code":       ZipCodeRegex,
-	"po_box":         PoBoxRegex,
-	"ssn":            SSNRegex,
-	"md5":            MD5HexRegex,
-	"sha1":           SHA1HexRegex,
-	"sha256":         SHA256HexRegex,
-	"guid":           GUIDRegex,
-	"isbn_10":        ISBN13Regex,
-	"isbn_13":        ISBN10Regex,
-	"mac_address":    MACAddressRegex,
-	"iban":           IBANRegex,
-	"git_repo":       GitRepoRegex,
+	"date":                      DateRegex,
+	"time":                      TimeRegex,
+	"phone":                     PhoneRegex,
+	"phone_ext":                 PhonesWithExtsRegex,
+	"link":                      LinkRegex,
+	"email":                     EmailRegex,
+	"ip4":                       IPv4Regex,
+	"ip6":                       IPv6Regex,
+	"ip":                        IPRegex,
+	"price":                     PriceRegex,
+	"cc":                        CreditCardRegex,
+	"visa_cc":                   VISACreditCardRegex,
+	"mc_cc":                     MCCreditCardRegex,
+	"btc_address":               BtcAddressRegex,
+	"street_address":            StreetAddressRegex,
+	"zip_code":                  ZipCodeRegex,
+	"po_box":                    PoBoxRegex,
+	"ssn":                       SSNRegex,
+	"md5":                       MD5HexRegex,
+	"sha1":                      SHA1HexRegex,
+	"sha256":                    SHA256HexRegex,
+	"guid":                      GUIDRegex,
+	"isbn_10":                   ISBN13Regex,
+	"isbn_13":                   ISBN10Regex,
+	"mac_address":               MACAddressRegex,
+	"iban":                      IBANRegex,
+	"git_repo":                  GitRepoRegex,
+	"cloudinary_url":            CloudinaryPatternRegex,
+	"firebase_url":              FirebaseURLPatternRegex,
+	"slack_token":               SlackTokenPatternRegex,
+	"rsa_private_key":           RSAPrivateKeyPatternRegex,
+	"dsa_private_key":           DSAPrivateKeyPatternRegex,
+	"ec_private_key":            ECPrivateKeyPatternRegex,
+	"pgp_private_key":           PGPPrivateKeyPatternRegex,
+	"aws_access_key":            AWSAccessKeyRegex,
+	"mws_token":                 MWSTokenPatternRegex,
+	"facebook_token":            FacebookTokenRegex,
+	"facebook_oauth":            FacebookOAuthRegex,
+	"github_token":              GithubTokenRegex,
+	"api_key":                   ApiKeyPatternRegex,
+	"secret":                    SecretPatternRegex,
+	"google_api_key":            GoogleAPIKeyRegex,
+	"gcp_oauth":                 GCPOAUthRegex,
+	"google_oauth_token":        GoogleOAuthTokenRegex,
+	"heroku_api_key":            HerokuAPIKeyRegex,
+	"mailchimp_api_key":         MailChimpAPIKeyRegex,
+	"mailgun_api_key":           MailgunAPIKeyRegex,
+	"password_in_url":           PasswordInURLRegex,
+	"braintree_token":           BraintreeTokenRegex,
+	"picatic_api_key":           PicaticAPIKeyRegex,
+	"slack_webhook":             SlackWebhookRegex,
+	"stripe_api_key":            StripeAPIKeyRegex,
+	"stripe_restricted_api_key": StripeRestrictedAPIKeyRegex,
+	"square_access_token":       SquareAccessTokenRegex,
+	"square_oauth_secret":       SquareOAuthSecretRegex,
+	"twilio_api_key":            TwilioAPIKeyRegex,
+	"twitter_access_token":      TwitterAccessTokenRegex,
+	"twitter_oauth":             TwitterOAuthRegex,
 }
 
 // placeholderReplacer converts our input pattern string into a regular expression string.
@@ -187,9 +313,10 @@ func ParseMultiple(data string, patterns ...string) map[string][]string {
 	dataList := make(map[string][]string)
 	if len(patterns) == 0 {
 		for pattern, rex := range RegexMap {
-			if pattern == "link" {
-				urls := match(data, rex)
-				dataList[pattern] = removeURLSchemeWithNoAuthority(urls).Urls
+			if pattern == "email" {
+				dataList[pattern] = ParseEmails(data)
+			} else if pattern == "link" {
+				dataList[pattern] = ParseLinks(data)
 			} else {
 				tmp := match(data, rex)
 				if len(tmp) > 0 {

@@ -140,6 +140,8 @@ func Anonymize(src any, rules ...Rule) any {
 	switch st := src.(type) {
 	case []byte:
 		return processBytes(st, rules...)
+	case string:
+		return processBytes(s2b(st), rules...)
 	}
 	source := reflect.ValueOf(src)
 	switch source.Kind() {
@@ -159,8 +161,6 @@ func Anonymize(src any, rules ...Rule) any {
 		return AnonymizeStruct(source, rules...)
 	case reflect.Map:
 		return AnonymizeMap(source, rules...)
-	case reflect.String:
-		return processBytes([]byte(source.String()))
 	}
 	return nil
 }

@@ -3,20 +3,36 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 
 	"github.com/oarkflow/anonymizer"
 )
 
 func main() {
-	structAnonymize()
-	mapAnonymize()
-	data := `
-https://sujit-baniya:kjhkjhkjhkjhk@github.com/Orgware-Construct/clear20-frontend.git
-
-tN3XSDHWF8ZPOERtQRnkVMZYHgghteT7
-`
-	parse := anonymizer.RedactGithub(data)
+	pattern := `(?i)([^_]+)-([^_]+)_([^_]+)\.PDF`
+	pattern2 := `(?i)<facility>-<enc_type>_<fin>\.PDF`
+	re := regexp.MustCompile(pattern)
+	// testLongString()
+	// structAnonymize()
+	// mapAnonymize()
+	data := `test-PRO_12112.pdf`
+	fmt.Println(re.FindAllStringSubmatch(data, -1))
+	parse, err := anonymizer.Parse(data, pattern2)
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println(parse)
+}
+
+func testLongString() {
+	data := `
+On 2024-01-01, omeone has made a commit on github on https://sujit-baniya:kjhkjhkjhkjhk@github.com/Orgware-Construct/clear20-frontend.git.
+On further investigation, I found the user has email s.baniya.np@gmail.com and logged in with IP 142.250.194.206. His name ia John Doe and lives at 123 Main St, Anytown, CA 12345. Jane Smith can be reached at +9779856034616.
+
+xoxp-123456789012-123456789012-123456789012-0123456789abcdef0123456789abcdef
+`
+	d := anonymizer.ParseMultiple(data)
+	fmt.Println(d)
 }
 
 type User struct {
