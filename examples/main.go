@@ -29,7 +29,7 @@ func testLongString() {
 On 2024-01-01, omeone has made a commit on github on https://sujit-baniya:kjhkjhkjhkjhk@github.com/Orgware-Construct/clear20-frontend.git.
 On further investigation, I found the user has email s.baniya.np@gmail.com and logged in with IP 142.250.194.206. His name ia John Doe and lives at 123 Main St, Anytown, CA 12345. Jane Smith can be reached at +9779856034616.
 
-xoxp-123456789012-123456789012-123456789012-0123456789abcdef0123456789abcdef
+dfadadsd
 `
 	d := anonymizer.ParseMultiple(data)
 	fmt.Println(d)
